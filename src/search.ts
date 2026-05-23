@@ -17,6 +17,10 @@ export interface SearchResult {
   matched: number;
 }
 
+/**
+ * Evaluates a single field query against a log entry.
+ * Returns false if the field is not present on the entry.
+ */
 function evaluateFieldQuery(entry: LogEntry, fq: FieldQuery): boolean {
   const raw = entry.fields[fq.field];
   if (raw === undefined) return false;
@@ -41,6 +45,9 @@ function evaluateFieldQuery(entry: LogEntry, fq: FieldQuery): boolean {
 
 /**
  * Search raw log lines using an optional query string.
+ *
+ * @param options - Search options including raw log lines and an optional query.
+ * @returns A SearchResult containing matched entries, total count, and matched count.
  */
 export function search(options: SearchOptions): SearchResult {
   const { rawLines, query } = options;
