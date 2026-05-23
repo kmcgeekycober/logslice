@@ -1,38 +1,48 @@
+/**
+ * types.ts
+ * Shared type definitions for logslice.
+ */
+
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+
 export interface LogEntry {
-  timestamp: string;
-  level: string;
-  message: string;
   [key: string]: unknown;
+  level?: LogLevel | string;
+  time?: string | number;
+  msg?: string;
+  message?: string;
+}
+
+export interface TimeRange {
+  from?: Date;
+  to?: Date;
+}
+
+export interface FieldQuery {
+  field: string;
+  operator: '=' | '!=' | '>' | '<' | '>=' | '<=' | '~';
+  value: string;
+}
+
+export interface Query {
+  timeRange?: TimeRange;
+  fieldQueries?: FieldQuery[];
+  searchTerm?: string;
 }
 
 export interface FilterOptions {
-  from?: Date;
-  to?: Date;
-}
-
-export interface FormatOptions {
+  query?: Query;
   fields?: string[];
-  colorize?: boolean;
+  maxLength?: number;
+  dedup?: boolean;
+  noColor?: boolean;
+  summary?: boolean;
+  pageSize?: number;
 }
 
-export interface PipelineOptions {
-  from?: Date;
-  to?: Date;
-  fieldQuery?: string;
-  fields?: string[];
-  colorize?: boolean;
+export interface SummaryStats {
+  total: number;
+  byLevel: Record<string, number>;
+  earliest?: string;
+  latest?: string;
 }
-
-export interface PipelineResult {
-  entries: LogEntry[];
-  output: string;
-  totalParsed: number;
-  totalMatched: number;
-}
-
-export type FieldQuery =
-  | { type: 'eq'; field: string; value: string }
-  | { type: 'neq'; field: string; value: string }
-  | { type: 'contains'; field: string; value: string }
-  | { type: 'and'; left: FieldQuery; right: FieldQuery }
-  | { type: 'or'; left: FieldQuery; right: FieldQuery };
