@@ -48,4 +48,16 @@ describe('runPipeline', () => {
     expect(result.totalMatched).toBe(0);
     expect(result.output).toBe('');
   });
+
+  it('handles input with only invalid JSON lines', () => {
+    const result = runPipeline('not-json\nalso-not-json', {});
+    expect(result.totalParsed).toBe(0);
+    expect(result.totalMatched).toBe(0);
+    expect(result.output).toBe('');
+  });
+
+  it('filters by level field query', () => {
+    const result = runPipeline(sampleLogs, { fieldQuery: 'level=error' });
+    expect(result.totalMatched).toBe(1);
+  });
 });
