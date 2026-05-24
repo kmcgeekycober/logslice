@@ -25,6 +25,12 @@ describe('renameField', () => {
     const result = renameField(base, 'nonexistent', 'x');
     expect(result).toEqual(base);
   });
+
+  it('does not mutate the original entry', () => {
+    const original = { ...base };
+    renameField(base, 'service', 'svc');
+    expect(base).toEqual(original);
+  });
 });
 
 describe('addField', () => {
@@ -36,6 +42,12 @@ describe('addField', () => {
   it('overwrites an existing field', () => {
     const result = addField(base, 'level', 'debug');
     expect(result.level).toBe('debug');
+  });
+
+  it('does not mutate the original entry', () => {
+    const original = { ...base };
+    addField(base, 'env', 'production');
+    expect(base).toEqual(original);
   });
 });
 
@@ -70,6 +82,10 @@ describe('parseTransformOption', () => {
   it('throws on unknown operation', () => {
     expect(() => parseTransformOption('flip:foo')).toThrow('Unknown transform');
   });
+
+  it('throws on malformed rename missing "="', () => {
+    expect(() => parseTransformOption('rename:serviceSvc')).toThrow();
+  });
 });
 
 describe('applyTransforms', () => {
@@ -82,5 +98,11 @@ describe('applyTransforms', () => {
     expect(results[0]).toHaveProperty('svc', 'api');
     expect(results[0]).toHaveProperty('env', 'prod');
     expect(results[0]).not.toHaveProperty('service');
+  });
+
+  it('returns an empty array when given no entries', () => {
+    const fns = [parseTransformOption('add:env=prod')];
+    const results = applyTransforms([], fns);
+    expect(results).toEqual([]);
   });
 });
