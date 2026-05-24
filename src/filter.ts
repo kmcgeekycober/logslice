@@ -50,3 +50,16 @@ export function filterLogs(entries: LogEntry[], options: FilterOptions): LogEntr
     return true;
   });
 }
+
+/**
+ * Returns the distinct log levels present in an array of log entries.
+ */
+export function getDistinctLevels(entries: LogEntry[]): string[] {
+  const levels = new Set<string>();
+  for (const entry of entries) {
+    if (entry.level) {
+      levels.add(entry.level.toLowerCase());
+    }
+  }
+  return Array.from(levels).sort();
+}
