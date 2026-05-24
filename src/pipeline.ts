@@ -1,34 +1,37 @@
 import { parseLogLines } from './parser';
 import { filterLogs } from './filter';
-import { parseQuery } from './query';
 import { search } from './search';
+import { sortLogs, parseSortOption } from './sort';
+import { deduplicateLogs } from './dedup';
+import { truncateEntries } from './truncate';
 import { formatEntries } from './formatter';
-import type { LogEntry } from './types';
-import type { PipelineOptions, PipelineResult } from './types';
+import { parseQuery } from './query';
+import { PipelineOptions } from './types';
 
-/**
- * Runs the full log processing pipeline:
- * parse → filter (time range) → search (field query) → format
- */
-export function runPipeline(raw: string, options: PipelineOptions): PipelineResult {
-  const { from, to, fieldQuery, fields, colorize = false } = options;
+export function runPipeline(raw: string, options: PipelineOptions): string {
+  let entries = parseLogLines(raw);
 
-  const entries: LogEntry[] = parseLogLines(raw);
-
-  const timeFiltered = filterLogs(entries, { from, to });
-
-  let queried: LogEntry[] = timeFiltered;
-  if (fieldQuery && fieldQuery.trim().length > 0) {
-    const parsedQuery = parseQuery(fieldQuery);
-    queried = search(timeFiltered, parsedQuery);
+  if (options.filter) {
+    entries = filterLogs(entries, options.filter);
   }
 
-  const formatted = formatEntries(queried, { fields, colorize });
+  if (options.fieldQuery) {
+    const query = parseQuery(options.fieldQuery);
+    entries = search(entries, query);
+  }
 
-  return {
-    entries: queried,
-    output: formatted,
-    totalParsed: entries.length,
-    totalMatched: queried.length,
-  };
+  if (options.sort) {
+    const sortOptions = parseSortOption(options.sort);
+    entries = sortLogs(entries, sortOptions);
+  }
+
+  if (options.dedup) {
+    entries = deduplicateLogs(entries);
+  }
+
+  if (options.truncate !== undefined) {
+    entries = truncateEntries(entries, options.truncate);
+  }
+
+  return formatEntries(entries, options);
 }
